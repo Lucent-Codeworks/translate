@@ -8,6 +8,7 @@
     "lint": "pnpm -r lint",
     "db:generate": "pnpm --filter web db:generate",
     "db:migrate": "pnpm --filter web db:migrate",
-    "db:studio": "pnpm --filter web db:studio"
+    "db:studio": "pnpm --filter web db:studio",
+    "test": "pnpm -r --if-present test"
   }
 }

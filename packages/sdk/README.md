@@ -9,18 +9,21 @@ const i18n = createTranslateClient({
   baseUrl: "https://translate.example.com",
   project: "my-app",          // project slug
   apiKey: "lt_…",             // Project → API keys
+  fallbackLocale: "en",       // optional, used for missing translations
   pollInterval: 60_000,       // optional, 0 disables polling
 });
 
-await i18n.load("de");
+await i18n.load("de");                               // also loads "en", the fallback
 i18n.t("de", "checkout.pay_button");                 // "Jetzt bezahlen"
 i18n.t("de", "greeting", { name: "Ada" });           // "Hallo {name}" → "Hallo Ada"
+i18n.t("de", "new.feature");                         // not translated yet → English text
 
 i18n.subscribe((locale, messages) => rerender());    // fires when translations change
 i18n.start();                                        // poll loaded locales for updates
 ```
 
-Missing keys fall back to the key itself. Update checks send the last `ETag`, so
+A missing translation falls back to `fallbackLocale` (usually the project's base
+language), then to the key itself. Update checks send the last `ETag`, so
 when nothing has changed the server answers `304 Not Modified` with no body.
 
 ## HTTP API

@@ -9,6 +9,12 @@ export interface TranslateClientOptions {
   apiKey: string;
   /** How often to poll for updates, in ms. Set to 0 to disable. Default: 60s. */
   pollInterval?: number;
+  /**
+   * Locale to use when a key has no translation in the requested locale,
+   * typically the project's base language. It is loaded alongside the first
+   * locale you load. Without it, missing keys render as the key itself.
+   */
+  fallbackLocale?: string;
   /** Custom fetch implementation (defaults to globalThis.fetch). */
   fetch?: typeof fetch;
 }
@@ -22,14 +28,14 @@ type Listener = (locale: string, messages: Messages) => void;
  * Server endpoint: GET {baseUrl}/api/v1/projects/{project}/locales/{locale}
  */
 export function createTranslateClient(options: TranslateClientOptions) {
-  const { baseUrl, project, apiKey, pollInterval = 60_000 } = options;
+  const { baseUrl, project, apiKey, fallbackLocale, pollInterval = 60_000 } = options;
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
 
   const cache = new Map<string, { etag?: string; messages: Messages }>();
   const listeners = new Set<Listener>();
   let timer: ReturnType<typeof setInterval> | undefined;
 
-  async function load(locale: string): Promise<Messages> {
+  async function fetchLocale(locale: string): Promise<Messages> {
     const cached = cache.get(locale);
     const url = `${baseUrl.replace(/\/$/, "")}/api/v1/projects/${encodeURIComponent(
       project,
@@ -53,12 +59,32 @@ export function createTranslateClient(options: TranslateClientOptions) {
     return messages;
   }
 
-  /** Looks up a key, interpolating `{name}` placeholders. Falls back to the key. */
+  /**
+   * Fetches a locale (and the fallback locale, the first time) and returns
+   * the locale's own messages.
+   */
+  async function load(locale: string): Promise<Messages> {
+    const needsFallback =
+      fallbackLocale !== undefined && fallbackLocale !== locale && !cache.has(fallbackLocale);
+    const [messages] = await Promise.all([
+      fetchLocale(locale),
+      needsFallback ? fetchLocale(fallbackLocale) : undefined,
+    ]);
+    return messages;
+  }
+
+  /**
+   * Looks up a key, interpolating `{name}` placeholders. Falls back to the
+   * fallback locale, then to the key itself.
+   */
   function t(locale: string, key: string, params?: Record<string, string | number>) {
-    const template = cache.get(locale)?.messages[key] ?? key;
+    const template =
+      cache.get(locale)?.messages[key] ??
+      (fallbackLocale !== undefined ? cache.get(fallbackLocale)?.messages[key] : undefined) ??
+      key;
     if (!params) return template;
     return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-      name in params ? String(params[name]) : match,
+      Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : match,
     );
   }
 
@@ -66,7 +92,7 @@ export function createTranslateClient(options: TranslateClientOptions) {
   function start() {
     if (timer || pollInterval <= 0) return;
     timer = setInterval(() => {
-      for (const locale of cache.keys()) load(locale).catch(() => {});
+      for (const locale of cache.keys()) fetchLocale(locale).catch(() => {});
     }, pollInterval);
   }
 

@@ -26,9 +26,10 @@ const i18n = createTranslateClient({
   baseUrl: "${origin}",
   project: "${slug}",
   apiKey: "${state.secret}",
+  fallbackLocale: "${baseLocale}",
 });
 
-await i18n.load("${baseLocale}");
+await i18n.load("${baseLocale}"); // or the user's locale
 i18n.start(); // poll for live updates
 i18n.t("${baseLocale}", "some.key");`;
 
