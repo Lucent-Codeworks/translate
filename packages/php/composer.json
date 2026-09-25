@@ -1,0 +1,33 @@
+{
+    "name": "lucent-codeworks/translate",
+    "description": "PHP client for Lucent Translate: fetch and cache project translations",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["i18n", "translation", "localization", "lucent"],
+    "require": {
+        "php": "^8.1",
+        "psr/simple-cache": "^2.0 || ^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5 || ^11.0 || ^12.0 || ^13.0",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "nyholm/psr7": "^1.8"
+    },
+    "suggest": {
+        "psr/http-client": "Use your own PSR-18 HTTP client via Psr18Transport",
+        "psr/http-factory": "Required with Psr18Transport"
+    },
+    "autoload": {
+        "psr-4": { "Lucent\\Translate\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Lucent\\Translate\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -13,9 +13,11 @@ pull live updates through the SDK.
 | `packages/svelte` | `@lucent-translate/svelte`, Svelte 5 / SvelteKit bindings |
 | `packages/react` | `@lucent-translate/react`, React / Next.js bindings |
 | `packages/nuxt` | `@lucent-translate/nuxt`, Nuxt module |
+| `packages/php` | `lucent-codeworks/translate`, PHP client (Composer) |
 | `examples/sveltekit` | Example SvelteKit app |
 | `examples/nextjs` | Example Next.js App Router app |
 | `examples/nuxt` | Example Nuxt app |
+| `examples/php` | Example plain PHP page |
 
 ## Getting started
 

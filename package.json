@@ -9,6 +9,7 @@
     "db:generate": "pnpm --filter web db:generate",
     "db:migrate": "pnpm --filter web db:migrate",
     "db:studio": "pnpm --filter web db:studio",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "test:php": "composer --working-dir=packages/php install --quiet && composer --working-dir=packages/php test"
   }
 }
