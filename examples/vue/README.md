@@ -10,3 +10,10 @@ pnpm --filter example-vue dev
 ```
 
 See `src/main.ts` (plugin setup) and `src/App.vue` (`useTranslate`).
+
+## Typed keys
+
+`translation-keys.d.ts` was generated from the demo project with
+`pnpm keys` (needs `LUCENT_TRANSLATE_URL`, `LUCENT_TRANSLATE_PROJECT` and
+`LUCENT_TRANSLATE_API_KEY`). Regenerate it for your own project; misspelled
+keys then fail `pnpm typecheck`.

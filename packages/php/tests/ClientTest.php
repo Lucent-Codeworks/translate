@@ -162,6 +162,31 @@ final class ClientTest extends TestCase
         self::assertStringContainsString('401', $errors[0]);
     }
 
+    public function testReportsUnknownKeysOnceWithASuggestion(): void
+    {
+        $transport = new FakeTransport([
+            'en' => ['home.title' => 'Welcome', 'checkout.pay' => 'Pay'],
+            'de' => ['home.title' => 'Willkommen'],
+        ]);
+        $reports = [];
+        $client = new Client(
+            'https://t.example.com', 'demo', 'lt_test', fallbackLocale: null, transport: $transport,
+            onMissingKey: function (string $key, string $locale, ?string $suggestion) use (&$reports) {
+                $reports[] = [$key, $locale, $suggestion];
+            },
+        );
+        $client->load('en');
+
+        self::assertSame('home.titel', $client->t('de', 'home.titel'));
+        $client->t('de', 'home.titel');
+        $client->t('de', 'checkout.pay'); // untranslated in de, but exists in en: not a typo
+        $client->t('en', 'profile.avatar');
+        self::assertSame([
+            ['home.titel', 'de', 'home.title'],
+            ['profile.avatar', 'en', null],
+        ], $reports);
+    }
+
     public function testRefreshIgnoresTheTtl(): void
     {
         $transport = new FakeTransport(['de' => ['title' => 'Willkommen']]);

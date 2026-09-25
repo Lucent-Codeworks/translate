@@ -1,3 +1,15 @@
+import type { Params, TranslationKey, TranslationParams } from "./keys";
+import { isDevelopment, suggestKey, warnOnMissingKey, type MissingKeyHandler } from "./missing-keys";
+
+export type {
+  Params,
+  TranslateFunction,
+  TranslationKey,
+  TranslationKeys,
+  TranslationParams,
+} from "./keys";
+export type { MissingKeyHandler, MissingKeyInfo } from "./missing-keys";
+
 export type Messages = Record<string, string>;
 
 export interface TranslateClientOptions {
@@ -22,6 +34,12 @@ export interface TranslateClientOptions {
   messages?: Record<string, Messages>;
   /** Custom fetch implementation (defaults to globalThis.fetch). */
   fetch?: typeof fetch;
+  /**
+   * Called (once per key) when `t()` is asked for a key that no loaded locale
+   * has, which usually means a typo. Defaults to a console warning in
+   * development builds and nothing in production. `false` disables it.
+   */
+  onMissingKey?: MissingKeyHandler | false;
 }
 
 type Listener = (locale: string, messages: Messages) => void;
@@ -40,6 +58,11 @@ export function createTranslateClient(options: TranslateClientOptions) {
     Object.entries(options.messages ?? {}).map(([locale, messages]) => [locale, { messages }]),
   );
   const listeners = new Set<Listener>();
+  const onMissingKey =
+    options.onMissingKey === false
+      ? undefined
+      : (options.onMissingKey ?? (isDevelopment() ? warnOnMissingKey : undefined));
+  const reportedKeys = new Set<string>();
   let timer: ReturnType<typeof setInterval> | undefined;
 
   async function fetchLocale(locale: string): Promise<Messages> {
@@ -84,15 +107,29 @@ export function createTranslateClient(options: TranslateClientOptions) {
    * Looks up a key, interpolating `{name}` placeholders. Falls back to the
    * fallback locale, then to the key itself.
    */
-  function t(locale: string, key: string, params?: Record<string, string | number>) {
+  function t<K extends TranslationKey>(locale: string, key: K, ...[params]: TranslationParams<K>): string {
     const template =
-      cache.get(locale)?.messages[key] ??
-      (fallbackLocale !== undefined ? cache.get(fallbackLocale)?.messages[key] : undefined) ??
-      key;
-    if (!params) return template;
-    return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-      Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : match,
-    );
+      lookup(cache.get(locale)?.messages, key) ??
+      (fallbackLocale !== undefined ? lookup(cache.get(fallbackLocale)?.messages, key) : undefined);
+    if (template === undefined) {
+      reportMissing(locale, key);
+      return key;
+    }
+    return interpolate(template, params as Params | undefined);
+  }
+
+  function reportMissing(locale: string, key: string) {
+    // Only when something is loaded (otherwise every key is "missing"), and
+    // only if no loaded locale has the key: missing in just one locale means
+    // untranslated, not a typo.
+    if (!onMissingKey || cache.size === 0 || reportedKeys.has(key)) return;
+    for (const entry of cache.values()) {
+      if (lookup(entry.messages, key) !== undefined) return;
+    }
+    reportedKeys.add(key);
+    const known = new Set<string>();
+    for (const entry of cache.values()) for (const k of Object.keys(entry.messages)) known.add(k);
+    onMissingKey({ key, locale, suggestion: suggestKey(key, known) });
   }
 
   /** Starts polling every loaded locale for changes. */
@@ -128,3 +165,17 @@ export function createTranslateClient(options: TranslateClientOptions) {
 }
 
 export type TranslateClient = ReturnType<typeof createTranslateClient>;
+
+const hasOwn = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+
+/** Own-property lookup, so keys like "constructor" aren't found on the prototype. */
+function lookup(messages: Messages | undefined, key: string): string | undefined {
+  return messages && hasOwn(messages, key) ? messages[key] : undefined;
+}
+
+function interpolate(template: string, params?: Params) {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    hasOwn(params, name) ? String(params[name]) : match,
+  );
+}

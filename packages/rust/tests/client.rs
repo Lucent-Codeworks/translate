@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use lucent_translate::{Client, Error};
+use lucent_translate::{Client, Error, MissingKey};
 use serde_json::json;
 use wiremock::matchers::{header, header_exists, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -190,4 +190,30 @@ fn rejects_invalid_base_urls() {
     for url in ["not a url", "mailto:someone@example.com"] {
         assert!(matches!(Client::builder(url, "demo", KEY).build(), Err(Error::InvalidBaseUrl(_))), "{url}");
     }
+}
+
+#[test]
+fn reports_unknown_keys_once_with_a_suggestion() {
+    let reports = Arc::new(Mutex::new(Vec::<(String, String, Option<String>)>::new()));
+    let seen = reports.clone();
+    let client = Client::builder("https://translate.invalid", "demo", KEY)
+        .messages("en", [("home.title".into(), "Welcome".into()), ("checkout.pay".into(), "Pay".into())].into())
+        .messages("de", [("home.title".into(), "Willkommen".into())].into())
+        .on_missing_key(move |m: &MissingKey<'_>| {
+            seen.lock().unwrap().push((m.key.into(), m.locale.into(), m.suggestion.map(Into::into)));
+        })
+        .build()
+        .unwrap();
+
+    assert_eq!(client.t("de", "home.titel"), "home.titel");
+    client.t("de", "home.titel");
+    client.t("de", "checkout.pay"); // untranslated in de, exists in en: not a typo
+    client.t("en", "profile.avatar");
+    assert_eq!(
+        *reports.lock().unwrap(),
+        vec![
+            ("home.titel".into(), "de".into(), Some("home.title".into())),
+            ("profile.avatar".into(), "en".into(), None),
+        ]
+    );
 }

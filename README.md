@@ -10,6 +10,7 @@ pull live updates through the SDK.
 | --- | --- |
 | `apps/web` | Next.js app: UI, auth, and the API (Drizzle + Postgres, better-auth) |
 | `packages/sdk` | `@lucent-translate/sdk`, the framework-agnostic client for fetching translations |
+| `packages/cli` | `@lucent-translate/cli`, generates typed keys (TypeScript, PHP, Rust) |
 | `packages/svelte` | `@lucent-translate/svelte`, Svelte 5 / SvelteKit bindings |
 | `packages/react` | `@lucent-translate/react`, React / Next.js bindings |
 | `packages/vue` | `@lucent-translate/vue`, Vue 3 bindings |

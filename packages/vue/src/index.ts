@@ -6,7 +6,14 @@ import { inject, ref, type App, type InjectionKey, type Plugin } from "vue";
 import { createTranslateState, type TranslateState } from "./state";
 
 export { createTranslateState, type TranslateState } from "./state";
-export type { Messages, TranslateClient, TranslateClientOptions } from "@lucent-translate/sdk";
+export type {
+  Messages,
+  TranslateClient,
+  TranslateClientOptions,
+  TranslateFunction,
+  TranslationKey,
+  TranslationKeys,
+} from "@lucent-translate/sdk";
 
 export interface CreateTranslateOptions extends TranslateClientOptions {
   /** Locale to render initially. */

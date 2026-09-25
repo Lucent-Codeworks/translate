@@ -1,0 +1,41 @@
+{
+  "name": "@lucent-translate/cli",
+  "version": "0.0.0",
+  "description": "Generate typed translation keys from a Lucent Translate project",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lucent-translate": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "tsup && vitest run"
+  },
+  "devDependencies": {
+    "@lucent-translate/react": "workspace:^",
+    "@lucent-translate/sdk": "workspace:^",
+    "@lucent-translate/svelte": "workspace:^",
+    "@lucent-translate/vue": "workspace:^",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.3.0",
+    "react": "^19.2.8",
+    "svelte": "^5.57.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1",
+    "vue": "^3.5.43"
+  }
+}

@@ -28,8 +28,12 @@ final class Client
     private readonly Transport $transport;
     /** @var \Closure(Throwable): void|null */
     private readonly ?\Closure $onError;
+    /** @var \Closure(string, string, ?string): void|null */
+    private readonly ?\Closure $onMissingKey;
     /** @var array<string, array<string, string>> Messages already resolved in this process. */
     private array $loaded = [];
+    /** @var array<string, true> Keys already reported to onMissingKey. */
+    private array $reportedKeys = [];
 
     /**
      * @param string $baseUrl Your Lucent Translate instance, e.g. https://translate.example.com
@@ -42,6 +46,9 @@ final class Client
      * @param Transport|null $transport HTTP transport; defaults to PHP streams.
      * @param callable(Throwable): void|null $onError Called when a fetch fails but t() keeps going
      *                                               (stale cache or key fallback), e.g. to log it.
+     * @param callable(string $key, string $locale, ?string $suggestion): void|null $onMissingKey
+     *        Called once per key when t() is asked for a key no loaded locale has, which usually
+     *        means a typo; `$suggestion` is the closest existing key. Enable it in development.
      */
     public function __construct(
         private readonly string $baseUrl,
@@ -52,10 +59,12 @@ final class Client
         private readonly int $ttl = 60,
         ?Transport $transport = null,
         ?callable $onError = null,
+        ?callable $onMissingKey = null,
     ) {
         $this->cache = $cache ?? new ArrayCache();
         $this->transport = $transport ?? new StreamTransport();
         $this->onError = $onError === null ? null : \Closure::fromCallable($onError);
+        $this->onMissingKey = $onMissingKey === null ? null : \Closure::fromCallable($onMissingKey);
     }
 
     /**
@@ -105,7 +114,11 @@ final class Client
         if ($template === null && $this->fallbackLocale !== null && $this->fallbackLocale !== $locale) {
             $template = $this->lookup($this->fallbackLocale, $key);
         }
-        return self::interpolate($template ?? $key, $params);
+        if ($template === null) {
+            $this->reportMissing($key, $locale);
+            return self::interpolate($key, $params);
+        }
+        return self::interpolate($template, $params);
     }
 
     /** A translator bound to one locale, handy to pass to views. */
@@ -125,6 +138,49 @@ final class Client
             static fn (array $m): string => array_key_exists($m[1], $params) ? (string) $params[$m[1]] : $m[0],
             $template,
         ) ?? $template;
+    }
+
+    /**
+     * Reports a key once, and only if no loaded locale has it: a key missing
+     * from just one locale is untranslated, not a typo.
+     */
+    private function reportMissing(string $key, string $locale): void
+    {
+        if ($this->onMissingKey === null || isset($this->reportedKeys[$key])) {
+            return;
+        }
+        $known = [];
+        foreach ($this->loaded as $messages) {
+            if (array_key_exists($key, $messages)) {
+                return;
+            }
+            $known += $messages;
+        }
+        if ($known === []) {
+            return; // nothing loaded, so every key looks missing
+        }
+        $this->reportedKeys[$key] = true;
+        ($this->onMissingKey)($key, $locale, self::suggestKey($key, array_keys($known)));
+    }
+
+    /**
+     * The closest key within a typo-sized edit distance, if any.
+     *
+     * @param list<string|int> $candidates
+     */
+    public static function suggestKey(string $key, array $candidates): ?string
+    {
+        $best = null;
+        $bestDistance = max(2, intdiv(strlen($key), 4)) + 1;
+        foreach ($candidates as $candidate) {
+            $candidate = (string) $candidate;
+            $distance = levenshtein($key, $candidate);
+            if ($distance < $bestDistance) {
+                $best = $candidate;
+                $bestDistance = $distance;
+            }
+        }
+        return $best;
     }
 
     private function lookup(string $locale, string $key): ?string

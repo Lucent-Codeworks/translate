@@ -35,6 +35,13 @@ useHead({ title: () => t("home.title"), htmlAttrs: { lang: locale } });
 </template>
 ```
 
+## Typed keys and typo warnings
+
+Run [`lucent-translate generate`](../cli) to type `t()` from your project's
+keys: unknown keys and missing params become compile errors. In development,
+unknown keys also log a warning with the closest match (see the core
+[SDK README](../sdk#unknown-keys)).
+
 ## How it works
 
 - On the server, the plugin loads the visitor's locale (from the cookie, else

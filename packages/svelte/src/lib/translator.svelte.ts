@@ -1,8 +1,10 @@
 import {
   createTranslateClient,
   type Messages,
+  type Params,
   type TranslateClient,
   type TranslateClientOptions,
+  type TranslateFunction,
 } from "@lucent-translate/sdk";
 import { createContext, onMount } from "svelte";
 
@@ -11,7 +13,6 @@ export interface TranslatorOptions extends TranslateClientOptions {
   locale: string;
 }
 
-type Params = Record<string, string | number>;
 
 /**
  * Reactive wrapper around the core client. Reading `t()` or `locale` inside
@@ -41,11 +42,14 @@ export class Translator {
     return this.#loading;
   }
 
-  /** Translates `key` in the current locale, interpolating `{name}` params. */
-  t = (key: string, params?: Params): string => {
+  /**
+   * Translates `key` in the current locale, interpolating `{name}` params.
+   * Typed from your generated keys when you run `lucent-translate generate`.
+   */
+  t: TranslateFunction = ((key: string, params?: Params): string => {
     void this.#version; // track updates
-    return this.client.t(this.#locale, key, params);
-  };
+    return (this.client.t as (locale: string, key: string, params?: Params) => string)(this.#locale, key, params);
+  }) as TranslateFunction;
 
   /**
    * Switches locale. Loads it first (if needed), so the UI never flashes

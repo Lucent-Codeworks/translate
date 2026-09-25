@@ -58,6 +58,13 @@ Use it anywhere below:
 <button disabled={i18n.loading} onclick={() => i18n.setLocale("fr")}>Français</button>
 ```
 
+## Typed keys and typo warnings
+
+Run [`lucent-translate generate`](../cli) to type `t()` from your project's
+keys: unknown keys and missing params become compile errors. In development,
+unknown keys also log a warning with the closest match (see the core
+[SDK README](../sdk#unknown-keys)).
+
 ## API
 
 - `setTranslator(options)`: creates a `Translator`, provides it to child

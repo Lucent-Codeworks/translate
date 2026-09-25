@@ -38,6 +38,13 @@ const { t, locale, loading, setLocale } = useTranslate();
 </template>
 ```
 
+## Typed keys and typo warnings
+
+Run [`lucent-translate generate`](../cli) to type `t()` from your project's
+keys: unknown keys and missing params become compile errors. In development,
+unknown keys also log a warning with the closest match (see the core
+[SDK README](../sdk#unknown-keys)).
+
 ## API
 
 - `createTranslate(options)`: takes every `@lucent-translate/sdk` option

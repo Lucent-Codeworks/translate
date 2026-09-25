@@ -79,6 +79,13 @@ Text rendered with the server `t()` is fixed at request time. Text from
 Without `messages`, `t()` returns keys until the first fetch completes. Render a
 loading state until `client.has(locale)` if that matters.
 
+## Typed keys and typo warnings
+
+Run [`lucent-translate generate`](../cli) to type `t()` from your project's
+keys: unknown keys and missing params become compile errors. In development,
+unknown keys also log a warning with the closest match (see the core
+[SDK README](../sdk#unknown-keys)).
+
 ## API
 
 - `<TranslateProvider locale … />`: takes every `@lucent-translate/sdk` option

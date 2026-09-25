@@ -1,7 +1,6 @@
-import type { Messages, TranslateClient } from "@lucent-translate/sdk";
+import type { Messages, Params, TranslateClient, TranslateFunction } from "@lucent-translate/sdk";
 import { readonly, ref, type Ref } from "vue";
 
-type Params = Record<string, string | number>;
 
 /**
  * Reactive translation state around a core client. Shared by the Vue plugin
@@ -46,11 +45,14 @@ export function createTranslateState(
     }
   }
 
-  /** Translates `key` in the current locale; reactive when used in render. */
-  function t(key: string, params?: Params): string {
+  /**
+   * Translates `key` in the current locale; reactive when used in render.
+   * Typed from your generated keys when you run `lucent-translate generate`.
+   */
+  const t = ((key: string, params?: Params): string => {
     void version.value; // track translation updates
-    return client.t(locale.value, key, params);
-  }
+    return (client.t as (locale: string, key: string, params?: Params) => string)(locale.value, key, params);
+  }) as TranslateFunction;
 
   return {
     client,

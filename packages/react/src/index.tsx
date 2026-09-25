@@ -1,7 +1,9 @@
 import {
   createTranslateClient,
+  type Params,
   type TranslateClient,
   type TranslateClientOptions,
+  type TranslateFunction,
 } from "@lucent-translate/sdk";
 import {
   createContext,
@@ -13,9 +15,14 @@ import {
   type ReactNode,
 } from "react";
 
-export type { Messages, TranslateClient, TranslateClientOptions } from "@lucent-translate/sdk";
-
-type Params = Record<string, string | number>;
+export type {
+  Messages,
+  TranslateClient,
+  TranslateClientOptions,
+  TranslateFunction,
+  TranslationKey,
+  TranslationKeys,
+} from "@lucent-translate/sdk";
 type State = { locale: string; loading: boolean; version: number };
 
 function createStore(options: TranslateClientOptions, initialLocale: string) {
@@ -69,6 +76,10 @@ type Store = ReturnType<typeof createStore>;
 
 const StoreContext = createContext<Store | null>(null);
 
+/** The client's `t` without key typing, for forwarding already-checked calls. */
+const untypedT = (client: TranslateClient) =>
+  client.t as (locale: string, key: string, params?: Params) => string;
+
 export type TranslateProviderProps = TranslateClientOptions & {
   /** Locale to render. Changing it switches locale once it has loaded. */
   locale: string;
@@ -101,8 +112,11 @@ export function TranslateProvider({ children, locale, ...options }: TranslatePro
 }
 
 export interface UseTranslateResult {
-  /** Translates `key` in the current locale, interpolating `{name}` params. */
-  t: (key: string, params?: Params) => string;
+  /**
+   * Translates `key` in the current locale, interpolating `{name}` params.
+   * Typed from your generated keys when you run `lucent-translate generate`.
+   */
+  t: TranslateFunction;
   locale: string;
   /** True while `setLocale` is fetching a locale that isn't loaded yet. */
   loading: boolean;
@@ -120,7 +134,7 @@ export function useTranslate(): UseTranslateResult {
   }
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
   const t = useCallback(
-    (key: string, params?: Params) => store.client.t(state.locale, key, params),
+    ((key: string, params?: Params) => untypedT(store.client)(state.locale, key, params)) as TranslateFunction,
     // `state` changes whenever the locale or any messages change.
     [store, state],
   );

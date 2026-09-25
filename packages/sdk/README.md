@@ -26,6 +26,19 @@ A missing translation falls back to `fallbackLocale` (usually the project's base
 language), then to the key itself. Update checks send the last `ETag`, so
 when nothing has changed the server answers `304 Not Modified` with no body.
 
+## Typed keys
+
+Run [`lucent-translate generate`](../cli) to generate your project's keys.
+`t()` then only accepts existing keys and requires exactly the params each
+text uses, in this package and every framework binding.
+
+## Unknown keys
+
+In development builds, `t()` warns once when asked for a key that no loaded
+locale has, with the closest match: `Unknown key "home.titel" … Did you mean
+"home.title"?`. Production builds stay silent. Customize or disable it with
+`onMissingKey: (info) => …` or `onMissingKey: false`.
+
 ## Server-side rendering
 
 Load on the server, then seed the browser client so the first render needs no

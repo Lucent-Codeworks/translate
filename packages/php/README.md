@@ -56,6 +56,23 @@ are fetched lazily, the first time they're used.
   request. `load()` throws `TranslateException` instead, if you'd rather fail
   loudly.
 
+## Catching typos
+
+Pass `onMissingKey` to hear about keys no loaded locale has, usually a typo.
+It's called once per key with the closest existing key:
+
+```php
+onMissingKey: function (string $key, string $locale, ?string $suggestion) {
+    if (app()->isLocal()) {
+        logger()->warning("Unknown translation key {$key}" . ($suggestion ? ", did you mean {$suggestion}?" : ''));
+    }
+},
+```
+
+To use constants instead of string literals, generate them with the
+[CLI](../cli): `lucent-translate generate --out src/Translation/Keys.php --php-namespace 'App\Translation'`,
+then `$t(Keys::HOME_TITLE)`.
+
 ## Frameworks
 
 Any PSR-16 cache works.

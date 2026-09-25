@@ -43,6 +43,17 @@ let _polling = client.spawn_polling(Duration::from_secs(60));
 - `builder.messages(locale, map)` seeds messages (e.g. bundled with
   `include_str!` as a fallback for cold starts); `snapshot()` exports them.
 
+## Catching typos
+
+In debug builds, `t()` prints a warning to stderr once per key that no loaded
+locale has, with the closest match (`Did you mean "home.title"?`). Release
+builds are silent. Override it with `.on_missing_key(|m| …)`, or silence it
+with `.on_missing_key(|_| {})`.
+
+For compile-time checking, generate key constants with the [CLI](../cli):
+`lucent-translate generate --out src/translation_keys.rs`, then
+`client.t("de", translation_keys::HOME_TITLE)`.
+
 ## Features
 
 | Feature | Default | |

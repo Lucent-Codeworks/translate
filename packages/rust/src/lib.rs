@@ -23,9 +23,9 @@
 //! [`Client`] is cheap to clone: clones share one store, so a single client can
 //! be handed to every request handler of a web server.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
 use reqwest::header::{AUTHORIZATION, ETAG, IF_NONE_MATCH};
@@ -60,6 +60,16 @@ pub enum Error {
 }
 
 type ErrorHook = Arc<dyn Fn(&Error) + Send + Sync>;
+type MissingKeyHook = Arc<dyn Fn(&MissingKey<'_>) + Send + Sync>;
+
+/// A lookup for a key that no loaded locale has, which usually means a typo.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MissingKey<'a> {
+    pub key: &'a str,
+    pub locale: &'a str,
+    /// The closest existing key, if one is similar enough.
+    pub suggestion: Option<&'a str>,
+}
 
 struct Entry {
     messages: Arc<Messages>,
@@ -75,6 +85,8 @@ struct Inner {
     store: RwLock<HashMap<String, Entry>>,
     updates: broadcast::Sender<String>,
     on_error: Option<ErrorHook>,
+    on_missing_key: Option<MissingKeyHook>,
+    reported_keys: Mutex<HashSet<String>>,
 }
 
 /// Configures a [`Client`]. Created with [`Client::builder`].
@@ -87,6 +99,7 @@ pub struct ClientBuilder {
     messages: HashMap<String, Messages>,
     http: Option<reqwest::Client>,
     on_error: Option<ErrorHook>,
+    on_missing_key: Option<MissingKeyHook>,
 }
 
 impl ClientBuilder {
@@ -122,6 +135,14 @@ impl ClientBuilder {
         self
     }
 
+    /// Called once per key when [`Client::t`] is asked for a key that no
+    /// loaded locale has. Defaults to a warning on stderr in debug builds and
+    /// nothing in release builds; pass `|_| {}` to silence it.
+    pub fn on_missing_key(mut self, hook: impl Fn(&MissingKey<'_>) + Send + Sync + 'static) -> Self {
+        self.on_missing_key = Some(Arc::new(hook));
+        self
+    }
+
     pub fn build(self) -> Result<Client, Error> {
         let base_url = Url::parse(&self.base_url)
             .ok()
@@ -147,6 +168,8 @@ impl ClientBuilder {
                 store: RwLock::new(store),
                 updates: broadcast::channel(64).0,
                 on_error: self.on_error,
+                on_missing_key: self.on_missing_key.or_else(default_missing_key_hook),
+                reported_keys: Mutex::new(HashSet::new()),
             }),
         })
     }
@@ -174,6 +197,7 @@ impl Client {
             messages: HashMap::new(),
             http: None,
             on_error: None,
+            on_missing_key: None,
         }
     }
 
@@ -205,15 +229,39 @@ impl Client {
     /// the key itself. Only uses messages already loaded.
     pub fn t(&self, locale: &str, key: &str) -> String {
         let store = self.read();
-        store
+        let found = store
             .get(locale)
             .and_then(|entry| entry.messages.get(key))
             .or_else(|| {
                 let fallback = self.inner.fallback_locale.as_deref()?;
                 store.get(fallback)?.messages.get(key)
             })
-            .cloned()
-            .unwrap_or_else(|| key.to_owned())
+            .cloned();
+        drop(store);
+        found.unwrap_or_else(|| {
+            self.report_missing(locale, key);
+            key.to_owned()
+        })
+    }
+
+    /// Reports a key once, and only if no loaded locale has it: a key missing
+    /// from just one locale is untranslated, not a typo.
+    fn report_missing(&self, locale: &str, key: &str) {
+        let Some(hook) = &self.inner.on_missing_key else { return };
+        let suggestion = {
+            let store = self.read();
+            if store.is_empty() || store.values().any(|entry| entry.messages.contains_key(key)) {
+                return;
+            }
+            let mut reported = self.inner.reported_keys.lock().unwrap_or_else(|p| p.into_inner());
+            if !reported.insert(key.to_owned()) {
+                return;
+            }
+            let candidates = store.values().flat_map(|entry| entry.messages.keys().map(String::as_str));
+            suggest_key(key, candidates).map(str::to_owned)
+        };
+        // Called with no locks held, so the hook may use the client itself.
+        hook(&MissingKey { key, locale, suggestion: suggestion.as_deref() });
     }
 
     /// Like [`t`](Self::t), replacing `{name}` placeholders with `params`.
@@ -393,6 +441,45 @@ impl Drop for PollingHandle {
     }
 }
 
+fn default_missing_key_hook() -> Option<MissingKeyHook> {
+    cfg!(debug_assertions).then(|| {
+        Arc::new(|missing: &MissingKey<'_>| {
+            let hint = missing
+                .suggestion
+                .map(|s| format!(" Did you mean \"{s}\"?"))
+                .unwrap_or_default();
+            eprintln!(
+                "[lucent-translate] Unknown key \"{}\": it isn't in any loaded locale (asked for \"{}\").{hint}",
+                missing.key, missing.locale
+            );
+        }) as MissingKeyHook
+    })
+}
+
+/// The closest candidate within a typo-sized edit distance, if any.
+fn suggest_key<'a>(key: &str, candidates: impl Iterator<Item = &'a str>) -> Option<&'a str> {
+    let limit = (key.chars().count() / 4).max(2);
+    candidates
+        .map(|candidate| (levenshtein(key, candidate), candidate))
+        .filter(|(distance, _)| *distance <= limit)
+        .min_by_key(|(distance, candidate)| (*distance, *candidate))
+        .map(|(_, candidate)| candidate)
+}
+
+fn levenshtein(a: &str, b: &str) -> usize {
+    let b: Vec<char> = b.chars().collect();
+    let mut previous: Vec<usize> = (0..=b.len()).collect();
+    for (i, ca) in a.chars().enumerate() {
+        let mut current = vec![i + 1];
+        for (j, cb) in b.iter().enumerate() {
+            let cost = usize::from(ca != *cb);
+            current.push((previous[j + 1] + 1).min(current[j] + 1).min(previous[j] + cost));
+        }
+        previous = current;
+    }
+    previous[b.len()]
+}
+
 /// Replaces `{name}` placeholders (name = letters, digits, `_`) using `lookup`.
 fn interpolate<'a>(template: &str, lookup: impl Fn(&str) -> Option<&'a str>) -> String {
     let mut out = String::with_capacity(template.len());
@@ -428,7 +515,15 @@ fn interpolate<'a>(template: &str, lookup: impl Fn(&str) -> Option<&'a str>) -> 
 
 #[cfg(test)]
 mod tests {
-    use super::interpolate;
+    use super::{interpolate, suggest_key};
+
+    #[test]
+    fn suggests_close_keys() {
+        let keys = ["home.title", "home.subtitle", "checkout.pay"];
+        assert_eq!(suggest_key("home.titel", keys.into_iter()), Some("home.title"));
+        assert_eq!(suggest_key("chekout.pay", keys.into_iter()), Some("checkout.pay"));
+        assert_eq!(suggest_key("profile.avatar", keys.into_iter()), None);
+    }
 
     #[test]
     fn interpolates_placeholders() {

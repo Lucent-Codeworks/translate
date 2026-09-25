@@ -1,20 +1,21 @@
 import {
   createTranslateClient,
   type Messages,
+  type Params,
   type TranslateClientOptions,
+  type TranslateFunction,
 } from "@lucent-translate/sdk";
 
 export { createTranslateClient };
 export type { Messages, TranslateClientOptions };
 
-type Params = Record<string, string | number>;
 
 export interface LoadedTranslations {
   locale: string;
   /** Pass to `<TranslateProvider messages={…}>` to hydrate without a fetch. */
   messages: Record<string, Messages>;
   /** Server-side lookup, e.g. in Server Components or `generateMetadata`. */
-  t: (key: string, params?: Params) => string;
+  t: TranslateFunction;
 }
 
 /**
@@ -31,6 +32,7 @@ export async function loadTranslations(
   return {
     locale,
     messages: client.snapshot(),
-    t: (key, params) => client.t(locale, key, params),
+    t: ((key: string, params?: Params) =>
+      (client.t as (locale: string, key: string, params?: Params) => string)(locale, key, params)) as TranslateFunction,
   };
 }
