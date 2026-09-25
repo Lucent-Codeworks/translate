@@ -11,7 +11,9 @@ pull live updates through the SDK.
 | `apps/web` | Next.js app: UI, auth, and the API (Drizzle + Postgres, better-auth) |
 | `packages/sdk` | `@lucent-translate/sdk`, the framework-agnostic client for fetching translations |
 | `packages/svelte` | `@lucent-translate/svelte`, Svelte 5 / SvelteKit bindings |
-| `examples/sveltekit` | Example SvelteKit app using the Svelte SDK |
+| `packages/react` | `@lucent-translate/react`, React / Next.js bindings |
+| `examples/sveltekit` | Example SvelteKit app |
+| `examples/nextjs` | Example Next.js App Router app |
 
 ## Getting started
 
