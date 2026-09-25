@@ -22,6 +22,28 @@ export const canManage = (role: ProjectRole) => role === "owner";
 /** Owners and editors change keys and translations. */
 export const canEdit = (role: ProjectRole) => role === "owner" || role === "editor";
 
+/** Lightweight project list for navigation, with the user's effective role. */
+export async function listProjectNav(session: Session) {
+  const rows = await db
+    .select({ slug: project.slug, name: project.name, role: projectMember.role })
+    .from(project)
+    .leftJoin(
+      projectMember,
+      and(eq(projectMember.projectId, project.id), eq(projectMember.userId, session.user.id)),
+    )
+    .orderBy(asc(project.name));
+  const admin = isAdmin(session);
+  return rows
+    .filter((row) => admin || row.role !== null)
+    .map((row) => ({
+      slug: row.slug,
+      name: row.name,
+      canManage: admin || row.role === "owner",
+    }));
+}
+
+export type ProjectNavItem = Awaited<ReturnType<typeof listProjectNav>>[number];
+
 /** Projects visible to the user (all of them for admins), with summary stats. */
 export async function listProjects(session: Session) {
   // Fully qualified, so the correlated subqueries below can't resolve a bare

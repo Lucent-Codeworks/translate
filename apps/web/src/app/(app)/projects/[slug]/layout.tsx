@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Eyebrow } from "@/components/ui";
-import { canManage, getProject } from "@/lib/projects";
+import { getProject } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
-import { ProjectTabs } from "./project-tabs";
+import { SectionCrumb } from "./section-crumb";
 
 export default async function ProjectLayout({
   children,
@@ -15,18 +15,18 @@ export default async function ProjectLayout({
   if (!project) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-2 border-b border-border pb-6">
         <Eyebrow>
           <Link href="/projects" className="hover:underline">
             Projects
           </Link>{" "}
           / {project.slug}
+          <SectionCrumb />
         </Eyebrow>
         <h1 className="text-3xl font-semibold">{project.name}</h1>
         {project.description && <p className="text-muted">{project.description}</p>}
       </div>
-      <ProjectTabs slug={slug} showSettings={canManage(project.role)} />
       {children}
     </div>
   );

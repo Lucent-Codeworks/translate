@@ -25,7 +25,7 @@ export default async function ProjectsPage() {
           A project holds the keys and translations for one app or site.
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((p) => {
             const targets = p.locales.length - 1;
             const possible = p.keyCount * targets;
