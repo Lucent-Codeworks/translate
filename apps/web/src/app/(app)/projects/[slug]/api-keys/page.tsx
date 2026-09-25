@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { Card } from "@/components/ui";
+import { Badge, EmptyState } from "@/components/ui";
 import { db } from "@/db";
 import { projectApiKey } from "@/db/schema";
 import { canManage, getProject } from "@/lib/projects";
@@ -38,11 +38,11 @@ export default async function ApiKeysPage({ params }: PageProps<"/projects/[slug
       <CreateKeyForm slug={slug} origin={origin} baseLocale={project.baseLocale} />
 
       {keys.length === 0 ? (
-        <Card className="text-center text-sm text-muted">No API keys yet.</Card>
+        <EmptyState title="No API keys yet">Create one to let the SDK fetch this project&apos;s translations.</EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border bg-elevated">
           <table className="w-full min-w-[36rem] text-sm">
-            <thead className="border-b border-border text-left text-muted">
+            <thead className="border-b border-border bg-surface-2/60 text-left text-xs uppercase tracking-wider text-subtle">
               <tr>
                 <th className="px-4 py-2 font-medium">Name</th>
                 <th className="px-4 py-2 font-medium">Key</th>
@@ -58,12 +58,12 @@ export default async function ApiKeysPage({ params }: PageProps<"/projects/[slug
                   className={"border-b border-border last:border-0 " + (k.revokedAt ? "text-muted" : "")}
                 >
                   <td className="px-4 py-2">{k.name}</td>
-                  <td className="px-4 py-2 font-mono text-xs">{k.prefix}…</td>
+                  <td className="px-4 py-2 font-mono text-xs text-accent">{k.prefix}…</td>
                   <td className="px-4 py-2">{formatDate(k.createdAt)}</td>
                   <td className="px-4 py-2">{formatDate(k.lastUsedAt)}</td>
                   <td className="px-4 py-2 text-right">
                     {k.revokedAt ? (
-                      "Revoked"
+                      <Badge>Revoked</Badge>
                     ) : (
                       <RevokeKeyButton slug={slug} keyId={k.id} name={k.name} />
                     )}

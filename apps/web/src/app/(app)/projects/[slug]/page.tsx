@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Card } from "@/components/ui";
+import { Badge, cx, EmptyState, ProgressBar } from "@/components/ui";
 import { localeName } from "@/lib/locales";
 import {
   canEdit,
@@ -53,16 +53,25 @@ export default async function ProjectPage({
                 key={code}
                 href={`/projects/${slug}?locale=${encodeURIComponent(code)}`}
                 aria-current={code === active ? "page" : undefined}
-                className={
-                  "flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm " +
-                  (code === active
-                    ? "border-foreground bg-surface"
-                    : "border-border text-muted hover:text-foreground")
-                }
+                className={cx(
+                  "flex min-w-36 flex-col gap-2 rounded-md border px-3 py-2 text-sm transition duration-200 ease-brand",
+                  code === active
+                    ? "border-accent bg-surface shadow-[0_0_0_3px_var(--accent-dim)]"
+                    : "border-border bg-elevated text-muted hover:border-border-strong hover:text-foreground",
+                )}
               >
-                <span>{localeName(code)}</span>
-                <span className="font-mono text-xs">{code}</span>
-                <span className="text-xs">{code === baseLocale ? "base" : `${pct}%`}</span>
+                <span className="flex items-center gap-2">
+                  <span className="font-medium">{localeName(code)}</span>
+                  <span className="ml-auto font-mono text-xs text-subtle">{code}</span>
+                </span>
+                {code === baseLocale ? (
+                  <Badge tone="accent" className="self-start">Base</Badge>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <ProgressBar value={pct} className="flex-1" />
+                    <span className="font-mono text-xs text-subtle">{pct}%</span>
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -80,26 +89,27 @@ export default async function ProjectPage({
       {editable && <AddKeyForm slug={slug} baseLocale={baseLocale} />}
 
       {rows.length === 0 ? (
-        <Card className="text-center text-sm text-muted">
-          No keys yet.{" "}
-          {editable ? "Add your first key above." : "Ask an editor to add some."}
-        </Card>
+        <EmptyState title="No keys yet">
+          {editable
+            ? "Add your first key above, or import a JSON file from the Import / Export tab."
+            : "Ask an editor to add some."}
+        </EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border bg-elevated">
           <table className="w-full min-w-[40rem] table-fixed text-sm">
-            <thead className="border-b border-border text-left text-muted">
+            <thead className="border-b border-border bg-surface-2/60 text-left text-xs uppercase tracking-wider text-subtle">
               <tr>
                 <th className="w-1/4 px-3 py-2 font-medium">Key</th>
                 {columns.map((code) => (
                   <th key={code} className="px-3 py-2 font-medium">
-                    {localeName(code)} <span className="font-mono text-xs">{code}</span>
+                    {localeName(code)} <span className="font-mono normal-case">{code}</span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-b border-border align-top last:border-0">
+                <tr key={row.id} className="border-b border-border align-top transition-colors last:border-0 hover:bg-surface/60">
                   <td className="px-3 py-2">
                     <KeyCell
                       slug={slug}

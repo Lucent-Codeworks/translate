@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Button, Card, ErrorText, Input } from "@/components/ui";
+import { Button, ErrorText, Input } from "@/components/ui";
 import { createApiKey } from "./actions";
 
 export function CreateKeyForm({
@@ -52,23 +52,23 @@ i18n.t("${baseLocale}", "some.key");`;
       </form>
 
       {state.secret && (
-        <Card className="flex flex-col gap-3 border-amber-400/70 bg-amber-50/50 dark:bg-amber-950/20">
+        <div className="flex flex-col gap-3 rounded-lg border border-accent bg-accent-dim p-6">
           <div className="text-sm font-medium">
             Copy your new key now. It won&apos;t be shown again.
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto rounded-md border border-border bg-background px-3 py-2 font-mono text-sm">
+            <code className="flex-1 overflow-x-auto rounded-md border border-border-strong bg-surface px-3 py-2 font-mono text-sm text-accent">
               {state.secret}
             </code>
             <CopyButton text={state.secret} />
           </div>
           <details className="text-sm">
             <summary className="cursor-pointer text-muted">SDK usage</summary>
-            <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-background p-3 font-mono text-xs">
+            <pre className="mt-2 overflow-x-auto rounded-md border border-border-strong bg-surface p-3 font-mono text-xs">
               {snippet}
             </pre>
           </details>
-        </Card>
+        </div>
       )}
     </div>
   );

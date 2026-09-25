@@ -7,7 +7,7 @@ export function RevokeKeyButton({ slug, keyId, name }: { slug: string; keyId: st
   const [pending, startTransition] = useTransition();
   return (
     <button
-      className="text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+      className="text-danger hover:underline disabled:opacity-50"
       disabled={pending}
       onClick={() => {
         if (!confirm(`Revoke "${name}"? Apps using it will stop receiving translations.`)) return;

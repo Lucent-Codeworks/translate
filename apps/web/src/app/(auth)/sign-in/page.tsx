@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Eyebrow } from "@/components/ui";
 import { hasAnyUser } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { SignInForm } from "./sign-in-form";
@@ -11,7 +12,10 @@ export default async function SignInPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
+      <div className="flex flex-col gap-2">
+        <Eyebrow>Translate</Eyebrow>
+        <h1 className="text-2xl font-semibold">Sign in</h1>
+      </div>
       <SignInForm />
       {process.env.ALLOW_PUBLIC_SIGNUP === "true" && (
         <p className="text-sm text-muted">

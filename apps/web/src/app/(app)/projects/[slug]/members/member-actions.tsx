@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Select } from "@/components/ui";
 import type { ProjectRole } from "@/lib/projects";
 import { removeMember, updateMemberRole } from "./actions";
 
@@ -35,13 +36,13 @@ export function MemberActions({
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-3">
         {canManage ? (
-          <select
+          <Select
             // Re-key on role so a rejected change snaps back to the saved role.
             key={role}
             defaultValue={role}
             disabled={pending}
             aria-label={`Role for ${name}`}
-            className="h-8 rounded-md border border-border bg-background px-2 text-sm"
+            className="h-8 px-2"
             onChange={(e) => {
               const next = e.target.value as ProjectRole;
               const select = e.target;
@@ -57,13 +58,13 @@ export function MemberActions({
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <span>{roleLabels[role]}</span>
         )}
         {(canManage || isSelf) && (
           <button
-            className="ml-auto text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+            className="ml-auto text-danger hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() => {
               const message = isSelf
@@ -76,7 +77,7 @@ export function MemberActions({
           </button>
         )}
       </div>
-      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

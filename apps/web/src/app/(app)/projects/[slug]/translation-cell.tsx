@@ -50,12 +50,12 @@ export function TranslationCell({
         rows={1}
         placeholder={readOnly ? "" : "Missing translation"}
         className={
-          "field-sizing-content min-h-9 w-full resize-none rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-foreground/20 " +
+          "field-sizing-content min-h-9 w-full resize-none rounded-md border bg-transparent px-2 py-1.5 text-sm outline-none transition duration-200 ease-brand placeholder:text-warning/80 focus:bg-surface focus:ring-3 focus:ring-accent-dim " +
           (status.kind === "error"
-            ? "border-red-500"
+            ? "border-danger"
             : filled
-              ? "border-transparent hover:border-border focus:border-border"
-              : "border-dashed border-amber-400/70")
+              ? "border-transparent hover:border-border-strong focus:border-accent"
+              : "border-dashed border-warning-border bg-warning/5 focus:border-accent")
         }
         onChange={(e) => setFilled(e.currentTarget.value !== "")}
         onFocus={() => status.kind === "saved" && setStatus({ kind: "idle" })}
@@ -74,7 +74,7 @@ export function TranslationCell({
       {(pending || status.kind !== "idle") && (
         <span
           className={
-            "px-2 text-xs " + (status.kind === "error" && !pending ? "text-red-600 dark:text-red-400" : "text-muted")
+            "px-2 text-xs " + (status.kind === "error" && !pending ? "text-danger" : "text-accent")
           }
         >
           {pending ? "Saving…" : status.kind === "error" ? status.message : "Saved"}

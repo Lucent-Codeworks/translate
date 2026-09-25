@@ -19,17 +19,21 @@ export function ProjectTabs({ slug, showSettings }: { slug: string; showSettings
   ];
 
   return (
-    <nav className="flex gap-4 border-b border-border text-sm">
+    <nav
+      // Baseline drawn as an inset shadow (not a border the tabs overlap), so the
+      // row never overflows vertically; horizontal scroll stays for narrow screens.
+      className="flex gap-6 overflow-x-auto text-sm shadow-[inset_0_-1px_0_var(--border)] [scrollbar-width:none]"
+    >
       {tabs.map((tab) => (
         <Link
           key={tab.href}
           href={tab.href}
           aria-current={tab.active ? "page" : undefined}
           className={
-            "-mb-px border-b-2 pb-2 " +
+            "shrink-0 border-b-2 pb-3 transition-colors duration-200 " +
             (tab.active
-              ? "border-foreground font-medium"
-              : "border-transparent text-muted hover:text-foreground")
+              ? "border-accent font-medium text-foreground"
+              : "border-transparent text-muted hover:border-border-strong hover:text-foreground")
           }
         >
           {tab.label}

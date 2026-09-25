@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   project,
@@ -22,18 +22,37 @@ export const canManage = (role: ProjectRole) => role === "owner";
 /** Owners and editors change keys and translations. */
 export const canEdit = (role: ProjectRole) => role === "owner" || role === "editor";
 
-/** Projects visible to the user: all of them for admins, memberships otherwise. */
+/** Projects visible to the user (all of them for admins), with summary stats. */
 export async function listProjects(session: Session) {
-  if (isAdmin(session)) {
-    return db.select().from(project).orderBy(asc(project.name));
-  }
-  return db
-    .select({ project })
-    .from(project)
-    .innerJoin(projectMember, eq(projectMember.projectId, project.id))
-    .where(eq(projectMember.userId, session.user.id))
-    .orderBy(asc(project.name))
-    .then((rows) => rows.map((r) => r.project));
+  // Fully qualified, so the correlated subqueries below can't resolve a bare
+  // "id" against their own tables.
+  const projectId = sql.raw(`"project"."id"`);
+  const baseLocale = sql.raw(`"project"."base_locale"`);
+  const fields = {
+    ...getTableColumns(project),
+    locales: sql<string[]>`(
+      select coalesce(array_agg(pl.code order by pl.code), '{}')
+      from ${projectLocale} pl where pl.project_id = ${projectId}
+    )`,
+    keyCount: sql<number>`(
+      select count(*)::int from ${translationKey} tk where tk.project_id = ${projectId}
+    )`,
+    // Translations in languages other than the base one.
+    targetTranslatedCount: sql<number>`(
+      select count(*)::int from ${translation} t
+      join ${translationKey} tk on tk.id = t.key_id
+      where tk.project_id = ${projectId} and t.locale <> ${baseLocale}
+    )`,
+  };
+
+  const query = isAdmin(session)
+    ? db.select(fields).from(project)
+    : db
+        .select(fields)
+        .from(project)
+        .innerJoin(projectMember, eq(projectMember.projectId, project.id))
+        .where(eq(projectMember.userId, session.user.id));
+  return query.orderBy(asc(project.name));
 }
 
 /** Returns the project and the user's role in it, or null if not accessible. */

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui";
 import { canManage, getProject, listMembers } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
 import { AddMemberForm } from "./add-member-form";
@@ -23,9 +24,9 @@ export default async function MembersPage({ params }: PageProps<"/projects/[slug
     <div className="flex flex-col gap-6">
       {manage && <AddMemberForm slug={slug} />}
 
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border bg-elevated">
         <table className="w-full min-w-[36rem] text-sm">
-          <thead className="border-b border-border text-left text-muted">
+          <thead className="border-b border-border bg-surface-2/60 text-left text-xs uppercase tracking-wider text-subtle">
             <tr>
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Email</th>
@@ -39,12 +40,13 @@ export default async function MembersPage({ params }: PageProps<"/projects/[slug
                   {m.name}
                   {m.userId === session.user.id && <span className="ml-1 text-muted">(you)</span>}
                   {m.isInstanceAdmin && (
-                    <span
+                    <Badge
+                      tone="accent"
                       title="Instance admins have owner access to every project, whatever their role here."
-                      className="ml-2 rounded border border-border px-1.5 py-0.5 text-xs text-muted"
+                      className="ml-2"
                     >
                       Admin
-                    </span>
+                    </Badge>
                   )}
                 </td>
                 <td className="px-4 py-2">{m.email}</td>
@@ -64,7 +66,7 @@ export default async function MembersPage({ params }: PageProps<"/projects/[slug
         </table>
       </div>
 
-      <dl className="grid max-w-2xl grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+      <dl className="grid max-w-2xl grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-lg border border-border bg-elevated p-4 text-sm">
         {roleHelp.map(([name, help]) => (
           <div key={name} className="contents">
             <dt className="font-medium">{name}</dt>

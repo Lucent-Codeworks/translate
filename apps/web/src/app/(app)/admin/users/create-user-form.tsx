@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, ErrorText, Field, Input } from "@/components/ui";
+import { Button, ErrorText, Field, Input, Select } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 
 export function CreateUserForm() {
@@ -40,14 +40,10 @@ export function CreateUserForm() {
         <Input name="password" type="password" minLength={8} required autoComplete="new-password" />
       </Field>
       <Field label="Role">
-        <select
-          name="role"
-          className="h-9 rounded-md border border-border bg-background px-3 text-sm"
-          defaultValue="user"
-        >
+        <Select name="role" defaultValue="user">
           <option value="user">User</option>
           <option value="admin">Admin</option>
-        </select>
+        </Select>
       </Field>
       <ErrorText>{error}</ErrorText>
       <div>

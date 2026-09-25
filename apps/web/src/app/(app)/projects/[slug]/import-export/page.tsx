@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, Eyebrow, Select } from "@/components/ui";
 import { localeName } from "@/lib/locales";
 import { canEdit, getProject } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
 import { ImportForm } from "./import-form";
-
-const selectClass = "h-9 rounded-md border border-border bg-background px-3 text-sm";
 
 export default async function ImportExportPage({
   params,
@@ -21,28 +19,29 @@ export default async function ImportExportPage({
     <div className="grid gap-6 lg:grid-cols-2">
       <Card className="flex flex-col gap-4">
         <div>
-          <h2 className="font-medium">Export</h2>
+          <Eyebrow>Export</Eyebrow>
+          <h2 className="mt-2 text-lg font-semibold">Download translations</h2>
           <p className="mt-1 text-sm text-muted">Download one language as a JSON file.</p>
         </div>
         <form action={`/projects/${slug}/export`} method="get" className="flex flex-col gap-4">
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium">Language</span>
-            <select name="locale" defaultValue={project.baseLocale} className={selectClass}>
+            <Select name="locale" defaultValue={project.baseLocale}>
               {locales.map((l) => (
                 <option key={l.code} value={l.code}>
                   {l.name} ({l.code})
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <fieldset className="flex flex-col gap-2 text-sm">
             <legend className="mb-1.5 font-medium">Format</legend>
             <label className="flex items-center gap-2">
-              <input type="radio" name="format" value="flat" defaultChecked />
+              <input type="radio" name="format" value="flat" defaultChecked className="accent-accent" />
               Flat <code className="text-xs text-muted">{`{ "home.title": "…" }`}</code>
             </label>
             <label className="flex items-center gap-2">
-              <input type="radio" name="format" value="nested" />
+              <input type="radio" name="format" value="nested" className="accent-accent" />
               Nested <code className="text-xs text-muted">{`{ "home": { "title": "…" } }`}</code>
             </label>
           </fieldset>
@@ -55,7 +54,8 @@ export default async function ImportExportPage({
       {canEdit(project.role) && (
         <Card className="flex flex-col gap-4">
           <div>
-            <h2 className="font-medium">Import</h2>
+            <Eyebrow>Import</Eyebrow>
+            <h2 className="mt-2 text-lg font-semibold">Upload translations</h2>
             <p className="mt-1 text-sm text-muted">
               Upload a flat or nested JSON file of translations for one language.
             </p>

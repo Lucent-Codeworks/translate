@@ -11,7 +11,7 @@ export function RemoveLocaleButton({ slug, code, name }: { slug: string; code: s
 
   return (
     <Button
-      variant="secondary"
+      variant="danger"
       disabled={pending}
       onClick={() => {
         if (!confirm(`Remove ${name} (${code})? All of its translations will be deleted.`)) return;

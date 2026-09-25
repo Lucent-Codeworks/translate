@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
-import { Button, ErrorText } from "@/components/ui";
+import { Button, ErrorText, Select } from "@/components/ui";
 import { importTranslations } from "./actions";
 
 const SHOWN_SKIPS = 20;
@@ -36,33 +36,29 @@ export function ImportForm({
           name="file"
           accept=".json,application/json"
           required
-          className="text-sm file:mr-3 file:h-9 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:text-sm"
+          className="text-sm text-muted file:mr-3 file:h-9 file:cursor-pointer file:rounded-md file:border file:border-border-strong file:bg-surface file:px-3 file:text-sm file:text-foreground file:transition-colors hover:file:border-accent"
         />
       </label>
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="font-medium">Language</span>
-        <select
-          name="locale"
-          defaultValue={baseLocale}
-          className="h-9 rounded-md border border-border bg-background px-3 text-sm"
-        >
+        <Select name="locale" defaultValue={baseLocale}>
           {locales.map((l) => (
             <option key={l.code} value={l.code}>
               {l.name} ({l.code})
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <div className="flex flex-col gap-2 text-sm">
         <label className="flex items-start gap-2">
-          <input type="checkbox" name="createKeys" defaultChecked className="mt-1" />
+          <input type="checkbox" name="createKeys" defaultChecked className="mt-1 accent-accent" />
           <span>
             Create keys that don&apos;t exist yet
             <span className="block text-xs text-muted">Otherwise they are skipped.</span>
           </span>
         </label>
         <label className="flex items-start gap-2">
-          <input type="checkbox" name="overwrite" defaultChecked className="mt-1" />
+          <input type="checkbox" name="overwrite" defaultChecked className="mt-1 accent-accent" />
           <span>
             Overwrite existing translations
             <span className="block text-xs text-muted">
@@ -79,8 +75,8 @@ export function ImportForm({
       </div>
 
       {result && (
-        <div role="status" className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3 text-sm">
-          <div className="font-medium">Import finished</div>
+        <div role="status" className="flex flex-col gap-2 rounded-md border border-accent bg-accent-dim p-3 text-sm">
+          <div className="font-medium text-accent">Import finished</div>
           <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
             <li>New keys: {result.createdKeys}</li>
             <li>Added translations: {result.added}</li>
@@ -89,7 +85,7 @@ export function ImportForm({
           </ul>
           {result.skipped.length > 0 && (
             <details>
-              <summary className="cursor-pointer text-amber-700 dark:text-amber-400">
+              <summary className="cursor-pointer text-warning">
                 Skipped {result.skipped.length}
               </summary>
               <ul className="mt-2 flex flex-col gap-1 text-xs">

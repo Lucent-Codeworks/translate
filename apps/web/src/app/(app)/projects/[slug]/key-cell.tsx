@@ -30,15 +30,15 @@ export function KeyCell({ slug, keyId, name, description, editable }: Props) {
 
   return (
     <div className={"group flex flex-col gap-1 " + (deleting ? "opacity-50" : "")}>
-      <div className="break-all font-mono text-xs">{name}</div>
-      {description && <div className="text-xs text-muted">{description}</div>}
+      <div className="break-all font-mono text-xs font-medium">{name}</div>
+      {description && <div className="text-xs text-subtle">{description}</div>}
       {editable && (
         <div className="flex gap-3 text-xs text-muted group-focus-within:opacity-100 group-hover:opacity-100 sm:opacity-0">
-          <button className="hover:text-foreground" onClick={() => setEditing(true)}>
+          <button className="hover:text-accent" onClick={() => setEditing(true)}>
             Edit
           </button>
           <button
-            className="hover:text-red-600 dark:hover:text-red-400"
+            className="hover:text-danger"
             disabled={deleting}
             onClick={() => {
               if (!confirm(`Delete "${name}" and all of its translations?`)) return;

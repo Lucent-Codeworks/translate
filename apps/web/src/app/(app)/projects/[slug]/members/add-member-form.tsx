@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { Button, ErrorText, Input } from "@/components/ui";
+import { Button, ErrorText, Input, Select } from "@/components/ui";
 import { addMember } from "./actions";
 
 export function AddMemberForm({ slug }: { slug: string }) {
@@ -23,16 +23,11 @@ export function AddMemberForm({ slug }: { slug: string }) {
           aria-label="Email"
           className="sm:max-w-sm"
         />
-        <select
-          name="role"
-          defaultValue="editor"
-          aria-label="Role"
-          className="h-9 rounded-md border border-border bg-background px-3 text-sm"
-        >
+        <Select name="role" defaultValue="editor" aria-label="Role">
           <option value="viewer">Viewer</option>
           <option value="editor">Editor</option>
           <option value="owner">Owner</option>
-        </select>
+        </Select>
         <Button type="submit" disabled={pending}>
           {pending ? "Adding…" : "Add member"}
         </Button>
