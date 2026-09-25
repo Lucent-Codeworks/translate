@@ -10,7 +10,7 @@ export function Button({
   return (
     <button
       className={cx(
-        "inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50",
+        "inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50",
         variant === "primary" && "bg-foreground text-background hover:opacity-90",
         variant === "secondary" && "border border-border hover:bg-surface",
         className,

@@ -5,11 +5,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { project, projectLocale, projectMember } from "@/db/schema";
 import { requireSession } from "@/lib/session";
-
-const localeCode = z
-  .string()
-  .trim()
-  .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/, "Use a BCP 47 code like en or pt-BR");
+import { localeCode } from "@/lib/validation";
 
 const createProjectSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
