@@ -1,9 +1,9 @@
 import { desc, eq } from "drizzle-orm";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Badge, EmptyState } from "@/components/ui";
 import { db } from "@/db";
 import { projectApiKey } from "@/db/schema";
+import { requestOrigin } from "@/lib/origin";
 import { canManage, getProject } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
 import { CreateKeyForm } from "./create-key-form";
@@ -24,9 +24,7 @@ export default async function ApiKeysPage({ params }: PageProps<"/projects/[slug
     .where(eq(projectApiKey.projectId, project.id))
     .orderBy(desc(projectApiKey.createdAt));
 
-  // Public URL of this instance, for the SDK snippet.
-  const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
+  const origin = await requestOrigin();
 
   return (
     <div className="flex flex-col gap-6">

@@ -99,3 +99,12 @@ h3 {
   outline: 2px solid var(--accent-bright);
   outline-offset: 2px;
 }
+
+/* Show code exactly as typed ("=>" not "⇒"); JetBrains Mono ligatures would
+   otherwise suggest characters that aren't there. */
+code,
+pre,
+kbd,
+.font-mono {
+  font-variant-ligatures: none;
+}

@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useActionState, useEffect, useRef } from "react";
+import { CopyButton } from "@/components/copy-button";
 import { Button, ErrorText, Input } from "@/components/ui";
 import { createApiKey } from "./actions";
 
@@ -63,7 +65,16 @@ i18n.t("${baseLocale}", "some.key");`;
             <CopyButton text={state.secret} />
           </div>
           <details className="text-sm">
-            <summary className="cursor-pointer text-muted">SDK usage</summary>
+            <summary className="cursor-pointer text-muted">
+              SDK usage{" "}
+              <span className="text-subtle">
+                (setup for React, Svelte, Vue, Nuxt, PHP and Rust is on the{" "}
+                <Link href={`/projects/${slug}/sdks`} className="text-accent hover:underline">
+                  SDKs tab
+                </Link>
+                )
+              </span>
+            </summary>
             <pre className="mt-2 overflow-x-auto rounded-md border border-border-strong bg-surface p-3 font-mono text-xs">
               {snippet}
             </pre>
@@ -71,22 +82,5 @@ i18n.t("${baseLocale}", "some.key");`;
         </div>
       )}
     </div>
-  );
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={async () => {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
-    >
-      {copied ? "Copied" : "Copy"}
-    </Button>
   );
 }
