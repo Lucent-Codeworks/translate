@@ -32,6 +32,21 @@ export const project = pgTable("project", {
   ...timestamps,
 });
 
+// Slugs a project used before being renamed. They keep resolving to the
+// project (API and UI), so renaming never breaks deployed SDK clients, and
+// they stay reserved so no other project can take them over.
+export const projectSlugAlias = pgTable(
+  "project_slug_alias",
+  {
+    slug: text("slug").primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("project_slug_alias_project_id_idx").on(t.projectId)],
+);
+
 export const projectMember = pgTable(
   "project_member",
   {

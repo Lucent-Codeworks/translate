@@ -1,8 +1,8 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, isNull, lt, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, or } from "drizzle-orm";
 import { db } from "@/db";
-import { project, projectApiKey } from "@/db/schema";
+import { project, projectApiKey, projectSlugAlias } from "@/db/schema";
 
 const KEY_PREFIX = "lt_";
 
@@ -28,7 +28,17 @@ export async function verifyApiKey(secret: string, slug: string) {
     .where(
       and(
         eq(projectApiKey.hash, hashKey(secret)),
-        eq(project.slug, slug),
+        // Old slugs keep working, so renaming a project doesn't break deployed apps.
+        or(
+          eq(project.slug, slug),
+          inArray(
+            project.id,
+            db
+              .select({ id: projectSlugAlias.projectId })
+              .from(projectSlugAlias)
+              .where(eq(projectSlugAlias.slug, slug)),
+          ),
+        ),
         isNull(projectApiKey.revokedAt),
       ),
     );

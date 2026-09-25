@@ -74,3 +74,9 @@ export const SignOutIcon = (p: P) => (
     <path d="M8 4H5.5A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8M12 13.5 15.5 10 12 6.5M15.5 10H8" />
   </Icon>
 );
+export const SettingsIcon = (p: P) => (
+  <Icon {...p}>
+    <circle cx="10" cy="10" r="2.5" />
+    <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" />
+  </Icon>
+);

@@ -4,18 +4,14 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/db";
 import { project, projectLocale, projectMember } from "@/db/schema";
+import { isSlugReserved } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
-import { localeCode } from "@/lib/validation";
+import { localeCode, projectDescription, projectName, projectSlug } from "@/lib/validation";
 
 const createProjectSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  slug: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Lowercase letters, numbers and dashes only")
-    .max(64),
-  description: z.string().trim().max(500).optional(),
+  name: projectName,
+  slug: projectSlug,
+  description: projectDescription.optional(),
   baseLocale: localeCode,
 });
 
@@ -46,6 +42,9 @@ export async function createProject(
   }
 
   const data = parsed.data;
+  if (await isSlugReserved(data.slug)) {
+    return { errors: { slug: "This slug is already taken" }, values };
+  }
   try {
     await db.transaction(async (tx) => {
       const [created] = await tx

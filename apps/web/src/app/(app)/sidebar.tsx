@@ -9,6 +9,7 @@ import {
   KeyIcon,
   LanguagesIcon,
   PlusIcon,
+  SettingsIcon,
   TransferIcon,
   UsersIcon,
 } from "@/components/icons";
@@ -25,6 +26,7 @@ export const PROJECT_SECTIONS: { segment: string | null; label: string; icon: Ic
   { segment: "sdks", label: "SDKs", icon: CodeIcon },
   { segment: "members", label: "Members", icon: UsersIcon },
   { segment: "api-keys", label: "API keys", icon: KeyIcon, ownerOnly: true },
+  { segment: "settings", label: "Settings", icon: SettingsIcon, ownerOnly: true },
 ];
 
 export interface SidebarUser {

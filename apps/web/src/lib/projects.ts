@@ -1,12 +1,13 @@
 import "server-only";
 import { cache } from "react";
-import { and, asc, count, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   project,
   projectLocale,
   user,
   projectMember,
+  projectSlugAlias,
   translation,
   translationKey,
 } from "@/db/schema";
@@ -155,4 +156,33 @@ export async function listMembers(projectId: string) {
     .innerJoin(user, eq(user.id, projectMember.userId))
     .where(eq(projectMember.projectId, projectId))
     .orderBy(asc(user.name));
+}
+
+/** Whether a slug is an old slug of some project (so it can't be reused elsewhere). */
+export async function isSlugReserved(slug: string, exceptProjectId?: string) {
+  const [alias] = await db
+    .select({ projectId: projectSlugAlias.projectId })
+    .from(projectSlugAlias)
+    .where(eq(projectSlugAlias.slug, slug));
+  return alias !== undefined && alias.projectId !== exceptProjectId;
+}
+
+/** Current slug of the project that used to be called `slug`, if any. */
+export async function resolveSlugAlias(slug: string) {
+  const [row] = await db
+    .select({ slug: project.slug })
+    .from(projectSlugAlias)
+    .innerJoin(project, eq(project.id, projectSlugAlias.projectId))
+    .where(eq(projectSlugAlias.slug, slug));
+  return row?.slug ?? null;
+}
+
+/** A project's previous slugs, newest first. */
+export async function listSlugAliases(projectId: string) {
+  const rows = await db
+    .select({ slug: projectSlugAlias.slug })
+    .from(projectSlugAlias)
+    .where(eq(projectSlugAlias.projectId, projectId))
+    .orderBy(desc(projectSlugAlias.createdAt));
+  return rows.map((r) => r.slug);
 }

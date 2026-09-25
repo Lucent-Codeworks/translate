@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Eyebrow } from "@/components/ui";
-import { getProject } from "@/lib/projects";
+import { getProject, resolveSlugAlias } from "@/lib/projects";
 import { requireSession } from "@/lib/session";
 import { SectionCrumb } from "./section-crumb";
 
@@ -12,7 +12,12 @@ export default async function ProjectLayout({
   const { slug } = await params;
   const session = await requireSession();
   const project = await getProject(session, slug);
-  if (!project) notFound();
+  if (!project) {
+    // Renamed projects keep their old URLs working.
+    const current = await resolveSlugAlias(slug);
+    if (current) redirect(`/projects/${current}`);
+    notFound();
+  }
 
   return (
     <div className="flex flex-col gap-8">
