@@ -22,6 +22,7 @@ export class Translator {
   #locale = $state("");
   #version = $state(0);
   #loading = $state(false);
+  #latestRequest = 0;
 
   constructor(options: TranslatorOptions) {
     this.client = createTranslateClient(options);
@@ -51,15 +52,24 @@ export class Translator {
    * fallback text for a locale that is on its way.
    */
   setLocale = async (locale: string) => {
-    if (!this.client.has(locale)) {
-      this.#loading = true;
-      try {
-        await this.client.load(locale);
-      } finally {
+    // Only the most recent call may apply, so rapid switches can't land out
+    // of order when a slower response arrives late.
+    const request = ++this.#latestRequest;
+    const isLatest = () => request === this.#latestRequest;
+    if (this.client.has(locale)) {
+      if (isLatest()) {
+        this.#locale = locale;
         this.#loading = false;
       }
+      return;
     }
-    this.#locale = locale;
+    this.#loading = true;
+    try {
+      await this.client.load(locale);
+      if (isLatest()) this.#locale = locale;
+    } finally {
+      if (isLatest()) this.#loading = false;
+    }
   };
 
   /** Messages held for every locale, to pass from a server `load` to the page. */

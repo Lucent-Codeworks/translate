@@ -9,3 +9,4 @@
 <span data-testid="locale">{i18n.locale}</span>
 <span data-testid="loading">{i18n.loading}</span>
 <button onclick={() => i18n.setLocale("fr")}>French</button>
+<button onclick={() => i18n.setLocale("de")}>German</button>

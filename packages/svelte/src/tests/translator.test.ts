@@ -84,6 +84,21 @@ describe("@lucent-translate/svelte", () => {
     expect(screen.getByRole("heading").textContent).toBe("Bienvenue");
   });
 
+  it("lets the latest switch win when an earlier one resolves late", async () => {
+    const server = fakeServer({ de: { title: "Willkommen" }, fr: { title: "Bienvenue" } });
+    render(Provider, { options: { ...base, locale: "de", pollInterval: 0, fetch: server.fetch } });
+    await wait(10);
+
+    const release = server.hold();
+    await fireEvent.click(screen.getByRole("button", { name: "French" }));
+    await fireEvent.click(screen.getByRole("button", { name: "German" }));
+    release();
+    await wait(10);
+    expect(screen.getByTestId("locale").textContent).toBe("de");
+    expect(screen.getByTestId("loading").textContent).toBe("false");
+    expect(screen.getByRole("heading").textContent).toBe("Willkommen");
+  });
+
   it("stops polling when the provider is destroyed", async () => {
     const server = fakeServer({ de: { title: "Willkommen" } });
     const { unmount } = render(Provider, {
