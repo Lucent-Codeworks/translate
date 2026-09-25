@@ -1,0 +1,26 @@
+[package]
+name = "lucent-translate"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Client for Lucent Translate: fetch, cache and live-update project translations"
+license = "MIT"
+keywords = ["i18n", "translation", "localization", "l10n"]
+categories = ["internationalization", "localization", "web-programming::http-client"]
+readme = "README.md"
+
+[features]
+default = ["rustls"]
+rustls = ["reqwest/rustls"]
+native-tls = ["reqwest/native-tls"]
+
+[dependencies]
+reqwest = { version = "0.13", default-features = false, features = ["http2"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt", "sync", "time"] }
+
+[dev-dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
+wiremock = "0.6"

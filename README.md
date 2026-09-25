@@ -14,6 +14,7 @@ pull live updates through the SDK.
 | `packages/react` | `@lucent-translate/react`, React / Next.js bindings |
 | `packages/nuxt` | `@lucent-translate/nuxt`, Nuxt module |
 | `packages/php` | `lucent-codeworks/translate`, PHP client (Composer) |
+| `packages/rust` | `lucent-translate`, Rust client (Cargo) |
 | `examples/sveltekit` | Example SvelteKit app |
 | `examples/nextjs` | Example Next.js App Router app |
 | `examples/nuxt` | Example Nuxt app |
