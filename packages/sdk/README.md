@@ -40,7 +40,7 @@ const messages = client.snapshot(); // { de: {...}, en: {...} }
 const i18n = createTranslateClient({ ...options, messages });
 ```
 
-Framework bindings: [`@lucent-translate/svelte`](../svelte), [`@lucent-translate/react`](../react).
+Framework bindings: [`@lucent-translate/svelte`](../svelte), [`@lucent-translate/react`](../react), [`@lucent-translate/nuxt`](../nuxt).
 
 ## HTTP API
 
