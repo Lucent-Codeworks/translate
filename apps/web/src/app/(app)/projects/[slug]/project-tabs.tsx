@@ -7,6 +7,11 @@ export function ProjectTabs({ slug, showSettings }: { slug: string; showSettings
   const segment = useSelectedLayoutSegment();
   const tabs = [
     { href: `/projects/${slug}`, label: "Translations", active: segment === null },
+    {
+      href: `/projects/${slug}/import-export`,
+      label: "Import / Export",
+      active: segment === "import-export",
+    },
     ...(showSettings
       ? [{ href: `/projects/${slug}/api-keys`, label: "API keys", active: segment === "api-keys" }]
       : []),

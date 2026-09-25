@@ -226,6 +226,9 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@types/node@20.19.43)(vite@8.3.1(@types/node@20.19.43)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/sdk:
     devDependencies:
@@ -4915,7 +4918,6 @@ snapshots:
       magic-string: 1.4.2
     optionalDependencies:
       vite: 8.3.1(@types/node@20.19.43)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
-    optional: true
 
   '@vitest/mocker@5.0.1(vite@8.3.1(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15))':
     dependencies:
@@ -6883,7 +6885,6 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.7.0
       tsx: 4.23.15
-    optional: true
 
   vite@8.3.1(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15):
     dependencies:
@@ -6918,7 +6919,6 @@ snapshots:
       '@types/node': 20.19.43
     transitivePeerDependencies:
       - msw
-    optional: true
 
   vitest@5.0.1(vite@8.3.1(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15)):
     dependencies:
