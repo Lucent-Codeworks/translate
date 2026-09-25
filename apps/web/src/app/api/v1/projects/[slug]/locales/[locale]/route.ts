@@ -3,23 +3,9 @@ import { and, asc, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
 import { projectLocale, translation, translationKey } from "@/db/schema";
-import { verifyApiKey } from "@/lib/api-keys";
+import { apiError, authenticate, corsHeaders, preflight } from "@/lib/public-api";
 
-// Keys are read-only and meant to ship in client bundles, so any origin may call this.
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Authorization, If-None-Match",
-  "Access-Control-Expose-Headers": "ETag",
-  "Access-Control-Max-Age": "86400",
-};
-
-const error = (status: number, message: string) =>
-  Response.json({ error: message }, { status, headers: corsHeaders });
-
-export function OPTIONS() {
-  return new Response(null, { status: 204, headers: corsHeaders });
-}
+export const OPTIONS = preflight;
 
 /** Returns a locale's translations as a flat `{ key: value }` object. */
 export async function GET(
@@ -28,16 +14,15 @@ export async function GET(
 ) {
   const { slug, locale } = await ctx.params;
 
-  const token = request.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1];
-  if (!token) return error(401, "Missing API key");
-  const project = await verifyApiKey(token, slug);
-  if (!project) return error(401, "Invalid API key");
+  const auth = await authenticate(request, slug);
+  if (auth.error) return auth.error;
+  const { project } = auth;
 
   const [known] = await db
     .select({ code: projectLocale.code })
     .from(projectLocale)
     .where(and(eq(projectLocale.projectId, project.id), eq(projectLocale.code, locale)));
-  if (!known) return error(404, `Unknown locale "${locale}"`);
+  if (!known) return apiError(404, `Unknown locale "${locale}"`);
 
   const rows = await db
     .select({ key: translationKey.key, value: translation.value })
