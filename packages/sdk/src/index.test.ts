@@ -111,4 +111,22 @@ describe("createTranslateClient", () => {
     expect(new Set(polled.map((r) => r.locale))).toEqual(new Set(["de", "en"]));
     expect(polled.every((r) => r.status === 304)).toBe(true);
   });
+
+  it("seeds from initial messages and round-trips through snapshot()", async () => {
+    const server = fakeServer({ de: { title: "Willkommen" }, en: { title: "Welcome" } });
+    const serverSide = createTranslateClient({ ...options, fallbackLocale: "en", fetch: server.fetch });
+    await serverSide.load("de");
+    const snapshot = serverSide.snapshot();
+    expect(snapshot).toEqual({ de: { title: "Willkommen" }, en: { title: "Welcome" } });
+
+    const browser = createTranslateClient({ ...options, messages: snapshot, fetch: server.fetch });
+    expect(browser.has("de")).toBe(true);
+    expect(browser.has("fr")).toBe(false);
+    expect(browser.t("de", "title")).toBe("Willkommen");
+    expect(server.requests).toHaveLength(2); // seeding didn't fetch
+
+    // Seeded entries have no ETag yet, so the first refresh is a full fetch.
+    await browser.load("de");
+    expect(server.requests[server.requests.length - 1].status).toBe(200);
+  });
 });

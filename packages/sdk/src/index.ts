@@ -15,6 +15,11 @@ export interface TranslateClientOptions {
    * locale you load. Without it, missing keys render as the key itself.
    */
   fallbackLocale?: string;
+  /**
+   * Messages to start with, keyed by locale, e.g. from `snapshot()` on the
+   * server. Lets server-rendered pages show translations without a fetch.
+   */
+  messages?: Record<string, Messages>;
   /** Custom fetch implementation (defaults to globalThis.fetch). */
   fetch?: typeof fetch;
 }
@@ -31,7 +36,9 @@ export function createTranslateClient(options: TranslateClientOptions) {
   const { baseUrl, project, apiKey, fallbackLocale, pollInterval = 60_000 } = options;
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
 
-  const cache = new Map<string, { etag?: string; messages: Messages }>();
+  const cache = new Map<string, { etag?: string; messages: Messages }>(
+    Object.entries(options.messages ?? {}).map(([locale, messages]) => [locale, { messages }]),
+  );
   const listeners = new Set<Listener>();
   let timer: ReturnType<typeof setInterval> | undefined;
 
@@ -107,7 +114,17 @@ export function createTranslateClient(options: TranslateClientOptions) {
     return () => listeners.delete(listener);
   }
 
-  return { load, t, start, stop, subscribe };
+  /** Whether messages for a locale are available (loaded or seeded). */
+  function has(locale: string) {
+    return cache.has(locale);
+  }
+
+  /** All currently held messages by locale; pass to `messages` to rehydrate. */
+  function snapshot(): Record<string, Messages> {
+    return Object.fromEntries([...cache].map(([locale, entry]) => [locale, entry.messages]));
+  }
+
+  return { load, t, has, snapshot, start, stop, subscribe };
 }
 
 export type TranslateClient = ReturnType<typeof createTranslateClient>;

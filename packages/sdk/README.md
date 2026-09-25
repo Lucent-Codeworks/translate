@@ -26,6 +26,22 @@ A missing translation falls back to `fallbackLocale` (usually the project's base
 language), then to the key itself. Update checks send the last `ETag`, so
 when nothing has changed the server answers `304 Not Modified` with no body.
 
+## Server-side rendering
+
+Load on the server, then seed the browser client so the first render needs no
+fetch:
+
+```ts
+// server
+await client.load("de");
+const messages = client.snapshot(); // { de: {...}, en: {...} }
+
+// browser
+const i18n = createTranslateClient({ ...options, messages });
+```
+
+Framework bindings: [`@lucent-translate/svelte`](../svelte).
+
 ## HTTP API
 
 `GET /api/v1/projects/{slug}/locales/{locale}` with `Authorization: Bearer <key>`
