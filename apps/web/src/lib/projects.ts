@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -34,7 +35,7 @@ export async function listProjects(session: Session) {
 }
 
 /** Returns the project and the user's role in it, or null if not accessible. */
-export async function getProject(session: Session, slug: string) {
+export const getProject = cache(async (session: Session, slug: string) => {
   const [row] = await db
     .select({ project, role: projectMember.role })
     .from(project)
@@ -56,7 +57,7 @@ export async function getProject(session: Session, slug: string) {
     .orderBy(asc(projectLocale.code));
 
   return { ...row.project, role, locales: locales.map((l) => l.code) };
-}
+});
 
 /** Number of non-empty translations per locale. */
 export async function getLocaleProgress(projectId: string) {

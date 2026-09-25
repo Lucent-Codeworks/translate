@@ -42,11 +42,6 @@ export default async function ProjectPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{project.name}</h1>
-        {project.description && <p className="mt-1 text-muted">{project.description}</p>}
-      </div>
-
       <section className="flex flex-col gap-3">
         <nav className="flex flex-wrap gap-2" aria-label="Languages">
           {[baseLocale, ...targetLocales].map((code) => {
