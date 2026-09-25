@@ -1,10 +1,11 @@
 import "server-only";
 import { cache } from "react";
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   project,
   projectLocale,
+  user,
   projectMember,
   translation,
   translationKey,
@@ -12,6 +13,7 @@ import {
 import type { Session } from "./auth";
 
 export type ProjectRole = (typeof projectMember.$inferSelect)["role"];
+export const projectRoles = projectMember.role.enumValues;
 
 export const isAdmin = (session: Session) => session.user.role === "admin";
 
@@ -95,4 +97,21 @@ export async function getTranslationRows(projectId: string, locales: string[]) {
     byKey.set(v.keyId, { ...byKey.get(v.keyId), [v.locale]: v.value });
   }
   return keys.map((k) => ({ ...k, values: byKey.get(k.id) ?? {} }));
+}
+
+/** Explicit members of a project (instance admins have access without being listed). */
+export async function listMembers(projectId: string) {
+  return db
+    .select({
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      isInstanceAdmin: sql<boolean>`coalesce(${user.role} = 'admin', false)`,
+      role: projectMember.role,
+      addedAt: projectMember.createdAt,
+    })
+    .from(projectMember)
+    .innerJoin(user, eq(user.id, projectMember.userId))
+    .where(eq(projectMember.projectId, projectId))
+    .orderBy(asc(user.name));
 }

@@ -12,6 +12,7 @@ export function ProjectTabs({ slug, showSettings }: { slug: string; showSettings
       label: "Import / Export",
       active: segment === "import-export",
     },
+    { href: `/projects/${slug}/members`, label: "Members", active: segment === "members" },
     ...(showSettings
       ? [{ href: `/projects/${slug}/api-keys`, label: "API keys", active: segment === "api-keys" }]
       : []),
