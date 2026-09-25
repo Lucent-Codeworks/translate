@@ -12,6 +12,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { AddKeyForm } from "./add-key-form";
 import { AddLocaleForm } from "./add-locale-form";
+import { KeyCell } from "./key-cell";
 import { RemoveLocaleButton } from "./remove-locale-button";
 import { TranslationCell } from "./translation-cell";
 
@@ -100,10 +101,13 @@ export default async function ProjectPage({
               {rows.map((row) => (
                 <tr key={row.id} className="border-b border-border align-top last:border-0">
                   <td className="px-3 py-2">
-                    <div className="break-all font-mono text-xs">{row.key}</div>
-                    {row.description && (
-                      <div className="mt-1 text-xs text-muted">{row.description}</div>
-                    )}
+                    <KeyCell
+                      slug={slug}
+                      keyId={row.id}
+                      name={row.key}
+                      description={row.description}
+                      editable={editable}
+                    />
                   </td>
                   {columns.map((code) => (
                     <td key={code} className="px-1 py-1">

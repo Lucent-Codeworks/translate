@@ -95,6 +95,48 @@ export async function addKey(slug: string, _prev: FormState, formData: FormData)
   return { ok: true };
 }
 
+const updateKeySchema = z.object({
+  keyId: z.uuid(),
+  key: translationKeyName,
+  description: z.string().trim().max(500),
+});
+
+/** Renames a key and/or changes its description. Translations are kept. */
+export async function updateKey(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const { project } = await authorize(slug, canEdit);
+  const parsed = updateKeySchema.safeParse({
+    keyId: formData.get("keyId"),
+    key: formData.get("key"),
+    description: formData.get("description") ?? "",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { keyId, key, description } = parsed.data;
+
+  try {
+    const updated = await db
+      .update(translationKey)
+      .set({ key, description: description || null })
+      .where(and(eq(translationKey.id, keyId), eq(translationKey.projectId, project.id)))
+      .returning({ id: translationKey.id });
+    if (updated.length === 0) return { error: "Key not found" };
+  } catch (err) {
+    if (isUniqueViolation(err)) return { error: `The key "${key}" already exists` };
+    throw err;
+  }
+  refresh();
+  return { ok: true };
+}
+
+/** Deletes a key along with all of its translations. */
+export async function deleteKey(slug: string, keyId: string) {
+  const { project } = await authorize(slug, canEdit);
+  if (!z.uuid().safeParse(keyId).success) return;
+  await db
+    .delete(translationKey)
+    .where(and(eq(translationKey.id, keyId), eq(translationKey.projectId, project.id)));
+  refresh();
+}
+
 /** Sets a key's value in one locale. An empty value removes the translation. */
 export async function saveTranslation(
   slug: string,
