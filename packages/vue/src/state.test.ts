@@ -1,7 +1,7 @@
 import { createTranslateClient, type Messages } from "@lucent-translate/sdk";
 import { describe, expect, it } from "vitest";
 import { computed, ref } from "vue";
-import { createTranslateState } from "../src/runtime/state";
+import { createTranslateState } from "./state";
 
 function fakeServer(data: Record<string, Messages>) {
   const gates = new Map<string, Promise<void>>();

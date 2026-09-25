@@ -1,6 +1,6 @@
 import { createTranslateClient, type Messages } from "@lucent-translate/sdk";
 import { defineNuxtPlugin, useCookie, useRuntimeConfig, useState } from "#app";
-import { createTranslateState } from "./state";
+import { createTranslateState } from "@lucent-translate/vue";
 import type { LucentTranslatePublicConfig } from "./types";
 
 const YEAR = 60 * 60 * 24 * 365;

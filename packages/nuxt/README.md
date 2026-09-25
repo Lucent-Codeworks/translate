@@ -1,7 +1,8 @@
 # @lucent-translate/nuxt
 
 Nuxt module for Lucent Translate: server-rendered translations, live updates
-in the browser, and the visitor's language remembered in a cookie.
+in the browser, and the visitor's language remembered in a cookie. Built on
+[`@lucent-translate/vue`](../vue).
 
 ```bash
 pnpm add @lucent-translate/nuxt

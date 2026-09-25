@@ -1,5 +1,5 @@
 import { useNuxtApp } from "#app";
-import type { TranslateState } from "./state";
+import type { TranslateState } from "@lucent-translate/vue";
 
 /**
  * Translations for the current locale: `{ t, locale, loading, setLocale, client }`.

@@ -52,6 +52,6 @@ export default defineNuxtModule<ModuleOptions>({
 
 declare module "#app" {
   interface NuxtApp {
-    $lucentTranslate: import("./runtime/state").TranslateState;
+    $lucentTranslate: import("@lucent-translate/vue").TranslateState;
   }
 }

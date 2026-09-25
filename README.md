@@ -12,12 +12,14 @@ pull live updates through the SDK.
 | `packages/sdk` | `@lucent-translate/sdk`, the framework-agnostic client for fetching translations |
 | `packages/svelte` | `@lucent-translate/svelte`, Svelte 5 / SvelteKit bindings |
 | `packages/react` | `@lucent-translate/react`, React / Next.js bindings |
-| `packages/nuxt` | `@lucent-translate/nuxt`, Nuxt module |
+| `packages/vue` | `@lucent-translate/vue`, Vue 3 bindings |
+| `packages/nuxt` | `@lucent-translate/nuxt`, Nuxt module (built on the Vue package) |
 | `packages/php` | `lucent-codeworks/translate`, PHP client (Composer) |
 | `packages/rust` | `lucent-translate`, Rust client (Cargo) |
 | `examples/sveltekit` | Example SvelteKit app |
 | `examples/nextjs` | Example Next.js App Router app |
 | `examples/nuxt` | Example Nuxt app |
+| `examples/vue` | Example Vite + Vue app |
 | `examples/php` | Example plain PHP page |
 
 ## Getting started

@@ -4,8 +4,9 @@ import { readonly, ref, type Ref } from "vue";
 type Params = Record<string, string | number>;
 
 /**
- * Reactive translation state around a core client. Kept free of Nuxt APIs so
- * it can be unit tested; the plugin wires it to cookies and the SSR payload.
+ * Reactive translation state around a core client. Shared by the Vue plugin
+ * and the Nuxt module; `onLocaleChange` lets hosts persist the choice
+ * (e.g. Nuxt's cookie).
  */
 export function createTranslateState(
   client: TranslateClient,
